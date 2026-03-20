@@ -1,0 +1,67 @@
+services:
+  kafka:
+    image: confluentinc/cp-kafka:${KAFKA_VERSION}
+    container_name: kafka
+    restart: unless-stopped
+    environment:
+      # KRaft mode (sin Zookeeper)
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # Listeners
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:${KAFKA_EXTERNAL_PORT},CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:${KAFKA_EXTERNAL_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Cluster
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # Storage
+      KAFKA_LOG_RETENTION_HOURS: ${KAFKA_LOG_RETENTION_HOURS}
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    ports:
+      - "${KAFKA_EXTERNAL_PORT}:${KAFKA_EXTERNAL_PORT}"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - faclab_network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:${KAFKA_UI_VERSION}
+    container_name: kafka-ui
+    restart: unless-stopped
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: faclab
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - "${KAFKA_UI_PORT}:8080"
+    networks:
+      - faclab_network
+
+  localstack:
+    container_name: aws-local
+    image: localstack/localstack:${LOCALSTACK_VERSION}
+    ports:
+      - "${LOCALSTACK_PORT}:4566"
+    environment:
+      - DEBUG=${LOCALSTACK_DEBUG}
+    volumes:
+      - "./scripts/init-dynamodb.sh:/etc/localstack/init/ready.d/init-dynamodb.sh"
+      - "${LOCALSTACK_VOLUME_DIR}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - faclab_network
+
+volumes:
+  kafka_data:
+    driver: local
+
+networks:
+  faclab_network:
+    name: faclab_network
+    driver: bridge
