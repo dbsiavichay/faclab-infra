@@ -50,6 +50,22 @@ services:
     networks:
       - faclab_network
 
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin
+    container_name: dynamodb-admin
+    restart: unless-stopped
+    environment:
+      - DYNAMO_ENDPOINT=http://aws-local:4566
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    ports:
+      - "8001:8001"
+    depends_on:
+      - localstack
+    networks:
+      - faclab_network
+
   localstack:
     container_name: aws-local
     image: localstack/localstack:${LOCALSTACK_VERSION}
@@ -59,6 +75,7 @@ services:
       - DEBUG=${LOCALSTACK_DEBUG}
     volumes:
       - "./scripts/init-dynamodb.sh:/etc/localstack/init/ready.d/init-dynamodb.sh"
+      - "./scripts/init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh"
       - "${LOCALSTACK_VOLUME_DIR}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
