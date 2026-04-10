@@ -16,5 +16,5 @@ create_bucket_if_not_exists() {
   echo "Bucket '$bucket_name' created."
 }
 
-# SRI Integrator
-create_bucket_if_not_exists sri-integrator-certificates
+# Faclab Invoicing Certificates bucket
+create_bucket_if_not_exists faclab-invoicing-certificates

@@ -17,7 +17,7 @@ create_table_if_not_exists() {
   echo "Table '$table_name' created."
 }
 
-# Sealify
+# Faclab Invoicing Certificates
 create_table_if_not_exists certificates \
   --attribute-definitions \
     AttributeName=id,AttributeType=S \
@@ -28,13 +28,21 @@ create_table_if_not_exists certificates \
     "IndexName=SerialNumberIndex,KeySchema=[{AttributeName=serial_number,KeyType=HASH}],Projection={ProjectionType=ALL}" \
   --billing-mode PAY_PER_REQUEST
 
-# SRI Integrator
+# Faclab Invoicing Company Config
+create_table_if_not_exists company_config \
+  --attribute-definitions \
+    AttributeName=id,AttributeType=S \
+  --key-schema \
+    AttributeName=id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST
+
+# Faclab Invoicing Invoices
 create_table_if_not_exists invoices \
   --attribute-definitions \
     AttributeName=id,AttributeType=S \
-    AttributeName=invoiceId,AttributeType=S \
+    AttributeName=saleId,AttributeType=S \
   --key-schema \
     AttributeName=id,KeyType=HASH \
   --global-secondary-indexes \
-    "IndexName=InvoiceIdIndex,KeySchema=[{AttributeName=invoiceId,KeyType=HASH}],Projection={ProjectionType=ALL}" \
+    "IndexName=SaleIdIndex,KeySchema=[{AttributeName=saleId,KeyType=HASH}],Projection={ProjectionType=ALL}" \
   --billing-mode PAY_PER_REQUEST
